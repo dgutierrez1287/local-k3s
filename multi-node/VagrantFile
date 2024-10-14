@@ -1,0 +1,66 @@
+require 'yaml'
+settings = YAML.load_file(File.join(File.dirname(__FILE__), 'settings.yaml'))
+
+Vagrant.configure("2") do |config|
+  config.vm.box = settings['box_name']
+  config.vm.box_check_update = false
+
+  settings['control-nodes'].each do |cp_config|
+    config.vm.define cp_config['name'] do |cp|
+      cp.vm.hostname = cp_config['name']
+      cp.vm.network "private_network", ip: cp_config['ip'],
+                vmware_desktop__vmnet: settings['vmnet']
+      cp.vm.synced_folder ".", "/vagrant", disabled: false
+      cp.vm.synced_folder "../scripts/provision", "/provision", disabled: false
+
+      cp.vm.provider "vmware_desktop" do |vb|
+        vb.gui = false
+        vb.memory = cp_config['memory']
+        vb.cpus = cp_config['cpus']
+      end
+
+      cp.vm.provision "shell", inline: <<-SHELL
+        # make sure the system is up to date
+        apt update
+        apt upgrade -y
+        
+        # install yq (needed for some local scripts)
+        bash /provision/install-yq.sh
+
+        # set up the /etc/hosts file to allow named connections to other machines
+        bash /provision/setup-hosts-file.sh
+
+        # run primary control setup (script will bug out if this is not the primary control node)
+        bash /provision/multi_node_provision.sh
+      SHELL
+    end
+  end
+
+  settings['workers'].each do |w_config|
+    config.vm.define w_config['name'] do |w|
+      w.vm.hostname = w_config['name']
+      w.vm.network "private_network", ip: w_config['ip'],
+              vmware_desktop__vmnet: settings['vmnet']
+      w.vm.synced_folder ".", "/vagrant", disabled: false
+      w.vm.synced_folder ".", "/provision", disabled: false
+
+      w.vm.provider "vmware_desktop" do |vb|
+        vb.gui = false
+        vb.memory = w_config['memory']
+        vb.cpus = w_config['cpus']
+      end
+
+      w.vm.provision "shell", inline: <<-SHELL
+        # make sure the system is up to date
+        apt update
+        apt upgrade -y
+        
+        # install yq (needed for some local scripts)
+        bash /provision/install-yq.sh
+        
+        # set up the /etc/hosts file to allow named connections to other machines 
+        bash /provision/setup-hosts-file.sh
+      SHELL
+    end
+  end
+end
