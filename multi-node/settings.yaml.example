@@ -1,0 +1,26 @@
+box_name: "<box-name>"
+vm_net: "<vmware-fusion-network>"
+
+cluster-vip: "The vip to use for kubevip"
+cluster-name: "the name for the cluster"
+
+primary-control: "<name of the primary control node>"
+
+control-nodes:
+- name: "<name>"
+  ip: "<ip address>"
+  memory: "<memory setting>"
+  cpus: "<cpu setting>"
+
+... (there must be three nodes)
+
+workers:
+- name: "<name>"
+  ip: "<ip address>"
+  memory: "<memory setting>"
+  cpus: "<cpu setting>"
+
+... as many workers as wanted
+
+provision_settings:
+  ansible_version: "<ansible_version>"

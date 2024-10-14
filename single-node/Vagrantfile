@@ -1,0 +1,27 @@
+require 'yaml'
+settings = YAML.load_file(File.join(File.dirname(__FILE__), 'settings.yaml'))
+
+Vagrant.configure("2") do |config|
+  config.vm.box = settings['box_name']
+  config.vm.box_check_update = false
+
+  config.vm.hostname = settings['machine_settings']['name']
+  config.vm.network "private_network", ip: settings['machine_settings']['ip'],
+              vmware_desktop__vmnet: settings['vmnet']
+  config.vm.synced_folder ".", "/vagrant", disabled: false
+  config.vm.synced_folder "../scripts/provision", "/provision", disabled: false 
+
+  config.vm.provider "vmware_desktop" do |vb|
+    vb.gui = false
+    vb.memory = settings['machine_settings']['memory']
+    vb.cpus = settings['machine_settings']['cpus']
+  end
+
+  config.vm.provision "shell", inline: <<-SHELL
+    apt update
+    apt upgrade -y
+
+    bash /provision/ansible-bootstrap.sh
+    bash /provision/ansible-hosts.sh single_node
+  SHELL
+end
