@@ -2,3 +2,4 @@ multi-node/settings.yaml
 single-node/settings.yaml
 single-node/.vagrant
 multi-node/.vagrant
+global_settings.yaml
