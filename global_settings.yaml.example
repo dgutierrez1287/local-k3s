@@ -1,0 +1,3 @@
+role_loc_type: "<git or local>"
+role_location: "<directory path for local or git repo url for git>"
+role_git_branch: "<branch if using git>"
