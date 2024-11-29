@@ -8,13 +8,16 @@ python_cmd="python3"
 pip_cmd="pip3 --disable-pip-version-check"
 
 # set ansible version to install from settings.yaml
-ansible_version="$(yq eval '.provision_settings.ansible_version' /vagrant/settings.yaml)"
+ansible_version="$(yq eval '.provision_settings.ansible_version' /vagrant/global/global_settings.yaml)"
 
 # make sure python and pip are installed
 sudo apt install -y python3 python3-pip
 
 # install ansible-core version
 sudo ${pip_cmd} install ansible-core==${ansible_version}
+
+# install any deps
+sudo ${pip_cmd} install python-debian
 
 # symlink ansible to the usual location
 sudo ln -s /usr/local/bin/ansible /usr/bin/ansible
