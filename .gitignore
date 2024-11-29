@@ -1,6 +1,10 @@
 multi-node/settings.yaml
+multi-node/.vagrant
+multi-node/ansible-vars.yml
+multi-node/kubeconfig
 single-node/settings.yaml
 single-node/.vagrant
-multi-node/.vagrant
+single-node/ansible-vars.yml
+single-node/kubeconfig
 global_settings.yaml
 ansible/roles
