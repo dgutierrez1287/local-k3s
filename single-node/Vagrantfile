@@ -8,8 +8,42 @@ Vagrant.configure("2") do |config|
   config.vm.hostname = settings['machine_settings']['name']
   config.vm.network "private_network", ip: settings['machine_settings']['ip'],
               vmware_desktop__vmnet: settings['vmnet']
-  config.vm.synced_folder ".", "/vagrant", disabled: false
-  config.vm.synced_folder "../scripts/provision", "/provision", disabled: false 
+  # provision scripts folder for basic provisioning
+  config.vm.synced_folder "../scripts/provision", "/provision", 
+    disabled: false 
+
+  # scripts used on the vagrant machine for tasks
+  config.vm.synced_folder "../scripts/remote/single_node", "/vagrant/scripts",
+    disabled: false
+
+  # shared folder to hold kubeconfig created by the cluster
+  config.vm.synced_folder "kubeconfig", "/vagrant/kubeconfig",
+    disabled: false
+  
+  # single node cluster settings
+  config.vm.synced_folder ".", "/vagrant/cluster", type: "rsync",
+    rsync__args: ["-r", "--include=settings.yaml", "--exclude=*"]
+
+  # global settings that apply to all clusters
+  config.vm.synced_folder "..", "/vagrant/global", type: "rsync",
+    rsync__args: ["-r", "--include=global_settings.yaml", "--exclude=*"]
+
+  # static vars file sync
+  config.vm.synced_folder "../ansible/variables/single_node", "/etc/ansible/vars/static", type: "rsync",
+    rsync__args: ["-r", "--include=vars-static.yml", "--exclude=*"]
+
+  # user defined ansible vars
+  config.vm.synced_folder ".", "/etc/ansible/vars/user", type: "rsync",
+    rsync__args: ["-r", "--include=ansible-vars.yml", "--exclude=*"]
+
+  # playbooks file sync
+  config.vm.synced_folder "../ansible/playbooks/single_node", "/etc/ansible/playbook", type: "rsync",
+    rsync__args: ["-r", "--include=playbook.yml", "--exclude=*"]
+
+  # ansible roles folder sync
+  config.vm.synced_folder "../ansible/roles", "/etc/ansible/roles", 
+    disabled: false
+
 
   config.vm.provider "vmware_desktop" do |vb|
     vb.gui = false
@@ -21,7 +55,13 @@ Vagrant.configure("2") do |config|
     apt update
     apt upgrade -y
 
+    # install yq (needed for some local scripts)
+    bash /provision/install-yq.sh
+
+    # bootstrap the system and install the needed version of ansible
     bash /provision/ansible-bootstrap.sh
+
+    # set up ansible hosts for single node cluster
     bash /provision/ansible-hosts.sh single_node
   SHELL
 end
