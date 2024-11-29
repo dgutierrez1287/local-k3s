@@ -1,11 +1,12 @@
 box_name: "<box-name>"
 vm_net: "<vmware-fusion-network>"
 
+cluster-vip: "<ip for kube-vip>"
+cluster_name: "<the name for the cluster>"
+
 machine_settings:
   name: "<machine_name>"
   ip: "<ip address>"
   memory: "<memory settings>"
   cpus: "<cpu setting>"
 
-provision_settings:
-  ansible_version: "<ansible_version>"
