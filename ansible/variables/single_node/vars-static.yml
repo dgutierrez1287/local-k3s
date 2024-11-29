@@ -1,0 +1,7 @@
+---
+
+# K3s vars
+k3s_ha_cluster: false
+
+
+
