@@ -1,0 +1,4 @@
+---
+
+k3s_ha_cluster: true
+k3s_node_purpose: worker

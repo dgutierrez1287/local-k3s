@@ -1,0 +1,13 @@
+--- 
+
+- name: multi node k3s control nodes playbook
+  hosts: control-nodes
+  become: true
+  become_user: root
+  vars_files:
+    - /etc/ansible/vars/static/vars-static-control.yml
+    - /etc/ansible/vars/dynamic/vars-dynamic-control.yml
+    - /etc/ansible/vars/user/ansible-vars.yml
+
+  roles:
+    - k3s

@@ -1,0 +1,6 @@
+---
+
+k3s_ha_cluster: true
+k3s_node_purpose: control-plane
+k3s_is_lead_control_plane_node: true
+k3s_bind_interface: eth1
