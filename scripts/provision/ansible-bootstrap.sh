@@ -86,7 +86,7 @@ module_utils   = /usr/share/my_module_utils/
 # additional paths to search for roles in, colon separated
 #roles_path    = /etc/ansible/roles
 # uncomment this to disable SSH key host checking
-#host_key_checking = False
+host_key_checking = False
 # change the default callback
 #stdout_callback = skippy
 # enable additional callbacks

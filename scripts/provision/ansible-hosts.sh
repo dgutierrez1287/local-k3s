@@ -9,27 +9,26 @@ if [[ "$cluster_type" == "single_node"  ]]; then
 
 elif [[ "$cluster_type" == "multi_node" ]]; then
   echo "setting ansible for multi node"
-
   machine_name="${hostname}"
-  primary_control=$(yq e '.primary-control' /vagrant/settings.yaml)
 
-  readarray cpNodes < <(yq e -o=j -I=0 '.control-nodes[]' /vagrant/settings.yaml)
+  echo "[lead-node]" >> /etc/ansible/hosts
+  echo "localhost ansible_connection=local" >> /etc/ansible/hosts
+  echo " " >> /etc/ansible/hosts
+  
+  
+  readarray cpNodes < <(yq e -o=j -I=0 '.control-nodes[]' /vagrant/cluster/settings.yaml)
 
   # write out the control-nodes group and the primary (this node) as a local connection
   echo "[control-nodes]" >> /etc/ansible/hosts
-  echo "${primary_control} ansible_connection=local" >> /etc/ansible/hosts
-  
   # loop through control nodes to add to ansible hosts
   for cp in "${cpNodes[@]}"; do 
     name=$(echo "$cp" | yq e '.name' -)
 
-    if [[ "${name}" != "${primary_control}" ]]; then
-      # write out the other control-nodes and specify connection details
-      echo "${name}   ansible_connection=ssh  ansible_user=vagrant" >> /etc/ansible/hosts
-    fi
+    # write out the other control-nodes and specify connection details
+    echo "${name}   ansible_connection=ssh  ansible_user=vagrant" >> /etc/ansible/hosts
   done
 
-  readarray wNodes < <(yq e -o=j -I=0 '.workers[]' /vagrant/settings.yaml)
+  readarray wNodes < <(yq e -o=j -I=0 '.workers[]' /vagrant/cluster/settings.yaml)
 
   # write out header for the the workers group
   echo " " >> /etc/ansible/hosts
