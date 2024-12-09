@@ -5,13 +5,104 @@ Vagrant.configure("2") do |config|
   config.vm.box = settings['box_name']
   config.vm.box_check_update = false
 
+  settings['lead-control-node'].each do |lcp_config|
+    config.vm.define lcp_config['name'] do |lcp|
+      lcp.vm.hostname = lcp_config['name']
+      lcp.vm.network "private_network", ip: lcp_config['ip'],
+                vmware_desktop__vmnet: settings['vmnet']
+
+      lcp.ssh.insert_key = false
+
+      #.vagrant.d dir to get the private key for provisioning
+      lcp.vm.synced_folder "~/.vagrant.d", "/.vagrant.d", disabled: false
+
+      # provision scripts folder for basic provisioning
+      lcp.vm.synced_folder "../scripts/provision", "/provision", disabled: false
+
+      # scripts used ont eh vagrant machine for tasks
+      lcp.vm.synced_folder "../scripts/remote/multi_node", "/vagrant/scripts",
+        disabled: false 
+
+      # folder to hold the kubeconfig created by the cluster
+      lcp.vm.synced_folder "kubeconfig", "/vagrant/kubeconfig",
+        disabled: false
+
+      # cluster settings
+      lcp.vm.synced_folder ".", "/vagrant/cluster", type: "rsync",
+        rsync__args: ["-r", "--include=settings.yaml", "--exclude=*"]
+
+      # global settings that apply to all clusters
+      lcp.vm.synced_folder "..", "/vagrant/global", type: "rsync",
+        rsync__args: ["-r", "--include=global_settings.yaml", "--exclude=*"]
+
+      # static vars file
+      lcp.vm.synced_folder "../ansible/variables/multi_node", "/etc/ansible/vars/static", type: "rsync",
+        rsync__args: ["-r", "--include=vars-static-*.yml", "--exclude=*"]
+
+      # user defined ansible vars
+      lcp.vm.synced_folder ".", "/etc/ansible/vars/user", type: "rsync",
+        rsync__args: ["-r", "--include=ansible-vars.yml", "--exclude=*"]
+
+      # playbooks
+      lcp.vm.synced_folder "../ansible/playbooks/multi_node", "/etc/ansible/playbook",
+        disabled: false
+
+      # ansible roles
+      lcp.vm.synced_folder "../ansible/roles", "/etc/ansible/roles",
+        disabled: false
+
+      lcp.vm.provider "vmware_desktop" do |vb|
+        vb.gui = false
+        vb.memory = lcp_config['memory']
+        vb.cpus = lcp_config['cpus']
+      end
+
+      lcp.vm.provision "shell", inline: <<-SHELL
+        # make sure the system is up to date
+        apt update
+        apt upgrade -y
+
+        cp /.vagrant.d/insecure_private_key /home/vagrant/.ssh/id_rsa
+        chown vagrant:vagrant /home/vagrant/.ssh/id_rsa
+        chmod 700 /home/vagrant/.ssh/id_rsa
+
+        # install yq (needed for local scripts)
+        bash /provision/install-yq.sh
+
+        # set up the /etc/hosts file to allow named connections to other machines
+        bash /provision/setup-hosts-file.sh
+
+        # set up ansible since this is the lead control node
+        bash /provision/ansible-bootstrap.sh
+
+        # set up ansible hosts for multi node cluster
+        bash /provision/ansible-hosts.sh multi_node
+      SHELL
+    end
+  end
+
   settings['control-nodes'].each do |cp_config|
     config.vm.define cp_config['name'] do |cp|
       cp.vm.hostname = cp_config['name']
       cp.vm.network "private_network", ip: cp_config['ip'],
                 vmware_desktop__vmnet: settings['vmnet']
-      cp.vm.synced_folder ".", "/vagrant", disabled: false
+
+      cp.ssh.insert_key = false
+
+      # provision scripts folder for basic provisioning
       cp.vm.synced_folder "../scripts/provision", "/provision", disabled: false
+
+      # scripts used on the vagrant machine for tasks
+      cp.vm.synced_folder "../scripts/remote/multi_node", "/vagrant/scripts",
+        disabled: false 
+
+      # cluster settings
+      cp.vm.synced_folder ".", "/vagrant/cluster", type: "rsync",
+        rsync__args: ["-r", "--include=settings.yaml", "--exclude=*"]
+
+      # global settings that apply to all clusters
+      cp.vm.synced_folder "..", "/vagrant/global", type: "rsync",
+        rsync__args: ["-r", "--include=global_settings.yaml", "--exclude=*"]
 
       cp.vm.provider "vmware_desktop" do |vb|
         vb.gui = false
@@ -29,9 +120,6 @@ Vagrant.configure("2") do |config|
 
         # set up the /etc/hosts file to allow named connections to other machines
         bash /provision/setup-hosts-file.sh
-
-        # run primary control setup (script will bug out if this is not the primary control node)
-        bash /provision/multi_node_provision.sh
       SHELL
     end
   end
@@ -41,8 +129,23 @@ Vagrant.configure("2") do |config|
       w.vm.hostname = w_config['name']
       w.vm.network "private_network", ip: w_config['ip'],
               vmware_desktop__vmnet: settings['vmnet']
-      w.vm.synced_folder ".", "/vagrant", disabled: false
-      w.vm.synced_folder ".", "/provision", disabled: false
+
+      w.ssh.insert_key = false
+
+      # provision scripts folder for basic provisioning
+      w.vm.synced_folder "../scripts/provision", "/provision", disabled: false
+
+      # scripts used ont eh vagrant machine for tasks
+      w.vm.synced_folder "../scripts/remote/multi_node", "/vagrant/scripts",
+        disabled: false 
+
+      # cluster settings
+      w.vm.synced_folder ".", "/vagrant/cluster", type: "rsync",
+        rsync__args: ["-r", "--include=settings.yaml", "--exclude=*"]
+
+      # global settings that apply to all clusters
+      w.vm.synced_folder "..", "/vagrant/global", type: "rsync",
+        rsync__args: ["-r", "--include=global_settings.yaml", "--exclude=*"]
 
       w.vm.provider "vmware_desktop" do |vb|
         vb.gui = false
