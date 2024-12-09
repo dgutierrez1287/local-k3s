@@ -3,6 +3,9 @@ MAKEFILE_DIR := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 SHELL := /usr/bin/env bash
 .DEFAULT_GOAL := help
 
+machine := "cp01"
+up-type := "no-parallel"
+
 # Detect OS
 OS := $(shell uname)
 
@@ -12,6 +15,7 @@ help:
 	@echo "list-vars: Lists generic variables"
 	@echo "pull-role: pulls the k3s role from the configured location"
 	@echo "prep: preps the cluster putting in place needed files and folders (this should only be needed once)" 
+	@echo "status: shows the status for both cluster types"
 	@echo ""
 	@echo "Single Node Control"
 	@echo "==========================================="
@@ -28,8 +32,19 @@ help:
 	@echo ""
 	@echo "Multi Node Control"
 	@echo "============================================"
+	@echo "mn-machine-up machine=<name>: brings up one machine in the multinode cluster"
+	@echo "mn-machine-up-all: brings up all the machines in the multi node cluster"
 	@echo "mn-up: spins up a multi-node local cluster"
+	@echo "mn-machine-down-all: destroys all the machines in the multi node cluster"
 	@echo "mn-down: destroys a running multi-node local cluster"
+	@echo "mn-ssh machine=<name>: SSH into the selected machine"
+	@echo "mn-sync: Syncs shared folders"
+	@echo "mn-machine-provision machine=<name>: runs ansible for only a selected machine"
+	@echo "mn-provision: runs a full provision on all nodes"
+	@echo "mn-reset: resets all the settings for a multi node cluster"
+	@echo "mn-add-kubeconfig: adds the multinode kubeconfig to users context"
+	@echo "mn-clear-kubeconfig: removes the multi node config from the users context"
+	
 
 ## General ##
 
@@ -43,12 +58,15 @@ list-vars:
 prep:
 	/usr/bin/env bash scripts/local/prep_reset.sh "${MAKEFILE_DIR}" "prep" "none"
 
+status:
+	/usr/bin/env bash scripts/local/status.sh "${MAKEFILE_DIR}"
+
 ## Single Node ##
 
 sn-machine-up: pull-role
 	/usr/bin/env bash scripts/local/single_node/up.sh "${MAKEFILE_DIR}"
 
-sn-up: pull-role sn-machine-up sn-provsion sn-add-kubeconfig
+sn-up: pull-role sn-machine-up sn-provision sn-add-kubeconfig
 
 sn-machine-down: 
 	/usr/bin/env bash scripts/local/single_node/down.sh "${MAKEFILE_DIR}"
@@ -75,3 +93,33 @@ sn-clear-kubeconfig:
 
 ## Multi Node ##
 
+mn-machine-up: pull-role
+	/usr/bin/env bash scripts/local/multi_node/up.sh "${MAKEFILE_DIR}" "${machine}"
+
+mn-machine-up-all: pull-role
+	/usr/bin/env bash scripts/local/multi_node/up.sh "${MAKEFILE_DIR}" "all" "--${up-type}"
+
+mn-up: pull-role mn-machine-up-all mn-provision mn-add-kubeconfig
+
+mn-down: mn-machine-down-all mn-clear-kubeconfig
+
+mn-machine-down-all:
+	/usr/bin/env bash scripts/local/multi_node/down.sh "${MAKEFILE_DIR}"
+
+mn-ssh:
+	/usr/bin/env bash scripts/local/multi_node/ssh.sh "${MAKEFILE_DIR}" "${machine}"
+
+mn-sync:
+	/usr/bin/env bash scripts/local/multi_node/sync.sh "${MAKEFILE_DIR}"
+
+mn-provision: 
+	/usr/bin/env bash scripts/local/multi_node/provision.sh "${MAKEFILE_DIR}" "all"
+
+mn-reset:
+	/usr/bin/env bash scripts/local/prep_reset.sh "${MAKEFILE_DIR}" "reset" "multi-node"
+
+mn-add-kubeconfig:
+	/usr/bin/env bash scripts/local/multi_node/local_kubeconfig.sh "${MAKEFILE_DIR}" "up"
+
+mn-clear-kubeconfig:
+	/usr/bin/env bash scripts/local/multi_node/local_kubeconfig.sh "${MAKEFILE_DIR}" "down"
