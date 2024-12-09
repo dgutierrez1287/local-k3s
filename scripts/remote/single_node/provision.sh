@@ -20,8 +20,8 @@ echo "Running ansible"
 ## Kube config stuff ##
 echo "Setting kube config for vagrant user"
 mkdir /home/vagrant/.kube
-cp /etc/rancher/k3s/k3s.yaml /home/vagrant/.kube/config.yaml
-chmod 777 /home/vagrant/.kube/config.yaml
+cp /etc/rancher/k3s/k3s.yaml /home/vagrant/.kube/config
+chmod 777 /home/vagrant/.kube/config
 
 echo "Copying kube config to shared folder"
 cp /etc/rancher/k3s/k3s.yaml /vagrant/kubeconfig/config.yaml
