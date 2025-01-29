@@ -1,6 +1,5 @@
 ---
 
 # K3s vars
-k3s_ha_cluster: false
-
-
+kube_ha_cluster: false
+kube_use_ips: true

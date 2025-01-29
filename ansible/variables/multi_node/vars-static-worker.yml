@@ -2,3 +2,5 @@
 
 k3s_ha_cluster: true
 k3s_node_purpose: worker
+
+k3s_dns_custom_resolv: "/etc/kube-resolv.conf"

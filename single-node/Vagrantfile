@@ -13,7 +13,7 @@ Vagrant.configure("2") do |config|
     disabled: false 
 
   # scripts used on the vagrant machine for tasks
-  config.vm.synced_folder "../scripts/remote/single_node", "/vagrant/scripts",
+  config.vm.synced_folder "../scripts/remote", "/vagrant/scripts",
     disabled: false
 
   # shared folder to hold kubeconfig created by the cluster
@@ -63,5 +63,8 @@ Vagrant.configure("2") do |config|
 
     # set up ansible hosts for single node cluster
     bash /provision/ansible-hosts.sh single_node
+
+    # set up special resolv.conf for k3s
+    bash /provision/kube-resolv.sh
   SHELL
 end

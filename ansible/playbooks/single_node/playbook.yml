@@ -10,4 +10,4 @@
     - /etc/ansible/vars/user/ansible-vars.yml
 
   roles:
-    - k3s
+    - kube

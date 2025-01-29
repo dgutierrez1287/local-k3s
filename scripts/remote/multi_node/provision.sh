@@ -16,8 +16,8 @@ sudo chmod 777 /etc/ansible/vars/dynamic/*
 
 ## Generate Dynamic vars off of settings ##
 echo "Generating Dynamic Variable files"
-sudo python3 /vagrant/scripts/generate_dynamic_vars.py "control"
-sudo python3 /vagrant/scripts/generate_dynamic_vars.py "worker"
+sudo python3 /vagrant/scripts/multi_node/generate_dynamic_vars.py "control"
+sudo python3 /vagrant/scripts/multi_node/generate_dynamic_vars.py "worker"
 
 ## Run Ansible ##
 echo "Running ansible on the lead node"
@@ -35,9 +35,8 @@ echo "running ansible on the worker nodes"
 ## KubeConfig Stuff ##
 echo "Setting kube config for the vagrant user on the lead node"
 mkdir /home/vagrant/.kube
-cp /etc/rancher/k3s/k3s.yaml /home/vagrant/.kube/config
+python3 /vagrant/scripts/correct_kubeconfig.py "multi-node"
 chmod 777 /home/vagrant/.kube/config
 
 echo "Copying kube config to shared folder"
-cp /etc/rancher/k3s/k3s.yaml /vagrant/kubeconfig/config.yaml
 chmod 777 /vagrant/kubeconfig/config.yaml

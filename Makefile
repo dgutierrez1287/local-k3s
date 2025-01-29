@@ -49,7 +49,7 @@ help:
 ## General ##
 
 pull-role:
-	/usr/bin/env bash scripts/local/pull_role.sh "${MAKEFILE_DIR}" "k3s"
+	/usr/bin/env bash scripts/local/pull_role.sh "${MAKEFILE_DIR}" "kube"
 
 list-vars:
 	@echo "OS Type: ${OS}"

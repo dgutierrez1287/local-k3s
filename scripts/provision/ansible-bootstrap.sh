@@ -18,11 +18,18 @@ sudo ${pip_cmd} install ansible-core==${ansible_version}
 
 # install any deps
 sudo ${pip_cmd} install python-debian
+sudo ${pip_cmd} install kubernetes
+sudo ${pip_cmd} install pyyaml
 
 # symlink ansible to the usual location
 sudo ln -s /usr/local/bin/ansible /usr/bin/ansible
 sudo ln -s /usr/local/bin/ansible-playbook /usr/bin/ansible-playbook
 sudo ln -s /usr/local/bin/ansible-galaxy /usr/bin/ansible-galaxy
+
+sudo mkdir -p /usr/share/ansible/collections
+
+## Install ansible module ##
+sudo ansible-galaxy collection install kubernetes.core -p /usr/share/ansible/collections
 
 ## set up ansible ##
 # create roles dir

@@ -7,7 +7,7 @@
   vars_files:
     - /etc/ansible/vars/static/vars-static-lead.yml
     - /etc/ansible/vars/dynamic/vars-dynamic-control.yml
-    - /etc/ansible/vars/usr/ansible-vars.yml
+    - /etc/ansible/vars/user/ansible-vars.yml
 
   roles:
     - k3s

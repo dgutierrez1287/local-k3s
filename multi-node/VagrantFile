@@ -20,7 +20,7 @@ Vagrant.configure("2") do |config|
       lcp.vm.synced_folder "../scripts/provision", "/provision", disabled: false
 
       # scripts used ont eh vagrant machine for tasks
-      lcp.vm.synced_folder "../scripts/remote/multi_node", "/vagrant/scripts",
+      lcp.vm.synced_folder "../scripts/remote", "/vagrant/scripts",
         disabled: false 
 
       # folder to hold the kubeconfig created by the cluster
@@ -77,6 +77,9 @@ Vagrant.configure("2") do |config|
 
         # set up ansible hosts for multi node cluster
         bash /provision/ansible-hosts.sh multi_node
+
+        # set up special resolv.conf for k3s
+        bash /provision/kube-resolv.sh
       SHELL
     end
   end
@@ -120,6 +123,9 @@ Vagrant.configure("2") do |config|
 
         # set up the /etc/hosts file to allow named connections to other machines
         bash /provision/setup-hosts-file.sh
+
+        # set up special resolv.conf for k3s
+        bash /provision/kube/resolv.sh
       SHELL
     end
   end
@@ -163,6 +169,9 @@ Vagrant.configure("2") do |config|
         
         # set up the /etc/hosts file to allow named connections to other machines 
         bash /provision/setup-hosts-file.sh
+
+        # set up special resolv.conf for k3s
+        bash /provision/kube-resolv.sh
       SHELL
     end
   end
